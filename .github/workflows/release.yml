@@ -6,23 +6,7 @@ on:
       - "v*"
 
 jobs:
-  create_release:
-    name: Create release
-    runs-on: ubuntu-latest
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-    steps:
-      - name: Create release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-
   compile_natives:
-    needs: create_release
     strategy:
       fail-fast: false
       matrix:
@@ -52,11 +36,7 @@ jobs:
           zip -r ./${{ matrix.zip_name }}.zip *
 
       - name: Upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ncipollo/release-action@v1
         with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ./natives/dist/${{ matrix.zip_name }}.zip
-          asset_name: ${{ matrix.zip_name }}.zip
-          asset_content_type: application/zip
+          allowUpdates: true
+          artifacts: "./natives/dist/${{ matrix.zip_name }}.zip"
